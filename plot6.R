@@ -14,13 +14,19 @@ unzip(paste(curdir,'/exdata%2Fdata%2FNEI_data.zip',sep=""),exdir=paste(curdir,se
 NEI  <- readRDS(paste(curdir,'/summarySCC_PM25.rds',sep=""))
 SCC  <- readRDS(paste(curdir,'/Source_Classification_Code.rds',sep=""))
 
-vehicles <- grepl("vehicle", SCC$SCC.Level.Two, ignore.case=TRUE)
-SCCvehicles <- SCC[vehicles,]$SCC
-NEIvehicles <- NEI[NEI$SCC %in% SCCvehicles,]
+NEIveBaltimore <- vehiclesNEI[vehiclesNEI$fips == 24510,]
+NEIveBaltimore$city <- "Baltimore City"
+NEIveLA <- vehiclesNEI[vehiclesNEI$fips=="06037",]
+NEIveLA$city <- "Los Angeles County, California"
+NEIbothCity <- rbind(NEIveBaltimore,NEIveLA)
 
-baltimoreNEIvehicles <- NEIvehicles[NEIvehicles$fips==24510,]
-png(filename=paste(curdir,'/plot5.png',sep=""),width=480,height=480,units='px')
-ggp <- ggplot(baltimoreNEIvehicles,aes(factor(year),Emissions)) + geom_bar(stat="identity",fill="grey",width=0.75) +  theme_bw() +  guides(fill=FALSE) +  labs(x="year", y=expression("Total PM2.5 Emission in Tons")) +   labs(title=expression("Baltimore PM 2.5 Motor Vehicle Source from 1999-2008"))
+png(filename=paste(curdir,'/plot6.png',sep=""),width=480,height=480,units='px')
+ggp <- ggplot(NEIbothCity, aes(x=factor(year), y=Emissions, fill=city)) +
+ geom_bar(aes(fill=year),stat="identity") +
+ facet_grid(scales="free", space="free", .~city) +
+ guides(fill=FALSE) + theme_grey() +
+ labs(x="year", y=expression("Total PM 2.5 Emission in Tons ")) + 
+ labs(title=expression("Baltimore & LA PM 2.5 Motor Vehicle Source from 1999-2008"))
 
 print(ggp)
 
